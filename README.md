@@ -1,29 +1,129 @@
-Memory Management SimulatorRepository: github.com/shivanshsrivastava2006/acm-projectOverviewThe Memory Management Simulator is a user-space C++ application designed to model the behavior of contiguous physical memory allocation. It provides an abstract simulation of a linear memory space, utilizing metadata blocks to track allocation states without managing actual application data.This tool serves as a testbed for comparing fundamental memory allocation algorithms—First Fit, Best Fit, and Worst Fit—and analyzing their impact on memory utilization and fragmentation. It features a modular architecture where allocation policies are decoupled from the underlying memory management mechanisms (splitting and coalescing).FeaturesContiguous Memory Simulation: Models a flat address space initialized to a user-defined size.Dynamic Allocation Policies: Runtime switching between distinct allocation strategies:First FitBest FitWorst FitBlock Management:Splitting: Automatically splits free blocks when an allocation request is smaller than the available block, preserving the remainder.Coalescing: Automatically merges adjacent free blocks upon deallocation to reduce external fragmentation.Interactive REPL: A Command-Line Interface for real-time interaction with the memory manager.Statistical Analysis: Real-time reporting of memory metrics and fragmentation calculations.Memory ModelThe simulator treats memory as a linked list of metadata blocks. It does not store actual user payloads; rather, it manipulates logical blocks representing the state of the memory.Each block contains the following metadata:Block ID: Unique identifier for tracking allocations.Start Address / Offset: Logical position within the memory pool.Size: The capacity of the block.Status: An enumeration indicating whether the block is FREE or ALLOCATED.When the memory is initialized, it exists as a single large FREE block. As malloc requests are processed, this block is split. When free is called, the system checks immediate neighbors (previous and next) and merges them if they are also FREE.Allocation StrategiesThe simulator implements the Allocator interface through three distinct concrete strategies.First FitThe allocator scans the list of free blocks from the beginning and selects the first block that is large enough to satisfy the request.Performance: Generally faster allocation time ($O(n)$ in worst case, but often constant in practice).Impact: Tends to cluster allocations at the beginning of the memory space.Best FitThe allocator scans the entire list of free blocks and selects the block that is closest in size to the request (smallest sufficient block).Performance: Requires a full scan ($O(n)$) unless the list is ordered by size.Impact: Minimizes the size of the leftover fragment (internal fragmentation equivalent) but may create many tiny, unusable gaps (external fragmentation).Worst FitThe allocator scans the entire list and selects the largest available free block.Performance: Requires a full scan ($O(n)$).Impact: Ensures the leftover fragment is as large as possible, potentially making it more useful for future allocations.Statistics & MetricsThe system calculates metrics dynamically after every operation.General MetricsTotal Memory: The fixed size of the memory pool defined at initialization.Used Memory: Sum of sizes of all ALLOCATED blocks.Free Memory: Sum of sizes of all FREE blocks.Utilization: $\frac{\text{Used Memory}}{\text{Total Memory}} \times 100\%$Fragmentation AnalysisThe simulator calculates External Fragmentation to measure the extent to which free memory is broken into small, non-contiguous blocks.The formula used is:$$\text{External Fragmentation} = 1 - \left( \frac{\text{Largest Free Block}}{\text{Total Free Memory}} \right)$$0.0 (0%): No fragmentation (all free memory is contiguous).Approaching 1.0 (100%): Severe fragmentation (free memory exists but is scattered in tiny blocks).Command-Line InterfaceThe application runs an interactive Read-Eval-Print Loop (REPL).CommandsCommandArgumentsDescriptioninit memory<size>Initializes the memory pool with a specific total size.set allocator<policy>Sets the strategy. Options: first_fit, best_fit, worst_fit.malloc<size>Allocates a block of the specified size. Returns a Block ID.free<block_id>Deallocates the block with the given ID. Triggers coalescing.dumpNonePrints the current state of all memory blocks (Address, Size, Status).statsNoneDisplays utilization and fragmentation metrics.exitNoneTerminates the simulation.Example SessionPlaintext> init memory 1024
-Memory initialized with 1024 bytes.
+# [Design and Implementation of a Memory Management Simulator]
 
-> set allocator best_fit
-Allocator set to Best Fit.
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-> malloc 100
-Allocated Block ID 1 (Size: 100)
+> A brief description of what this project does and who it's for.
 
-> malloc 200
-Allocated Block ID 2 (Size: 200)
+## 📋 Table of Contents
 
-> free 1
-Block ID 1 freed. Coalescing performed.
+- [About](#about)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#usage)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
-> dump
-[0] ID: 0 | Size: 100 | FREE
-[100] ID: 2 | Size: 200 | ALLOCATED
-[300] ID: 0 | Size: 724 | FREE
+---
 
-> stats
-Total Memory: 1024
-Used Memory:  200
-Free Memory:  824
-Utilization:  19.53%
-Ext. Frag:    12.14%
-Project StructureThe codebase adheres to object-oriented principles, separating the interface from the implementation.main.cpp: Entry point handling the REPL and command parsing.MemoryManager: Core class managing the linked list of blocks, splitting, and coalescing logic.Allocator: Abstract base class defining the allocate() interface.FirstFitAllocator: Implementation of the First Fit logic.BestFitAllocator: Implementation of the Best Fit logic.WorstFitAllocator: Implementation of the Worst Fit logic.Block: Struct definition for memory metadata (ID, size, state).Build InstructionsPrerequisitesA C++ compiler supporting C++17 or later (GCC, Clang, or MSVC).Make (optional, if Makefile is provided).CompilingTo compile the project using g++:Bashg++ -std=c++17 -o memsim main.cpp src/*.cpp
-RunningBash./memsim
-LimitationsSimulation Only: This is a logical model. It does not interface with the OS kernel or manage actual hardware RAM.No Payload Storage: The simulator tracks allocation size and status but does not allow writing data into the allocated blocks.Single-Threaded: The implementation is not thread-safe and is designed for single-user experimentation.Linear Search: The block list is implemented as a linear linked list, resulting in $O(n)$ time complexity for search operations.Purpose / Learning OutcomesThis project is intended for academic and educational purposes, specifically to:Visualize how different allocation strategies affect heap geometry.Understand the mechanics of block splitting and coalescing.Quantify the trade-offs between allocation speed and memory fragmentation.StatusCurrent Version: 1.0.0Status: Maintenance Mode
+## 🧐 About <a name = "about"></a>
+
+Write a detailed description of the project here. Explain the problem statement, why you built this, and what the solution achieves.
+
+## ✨ Features <a name = "features"></a>
+
+- **Feature 1:** Description of the first key feature.
+- **Feature 2:** Description of the second key feature.
+- **Feature 3:** Description of the third key feature.
+
+## 🚀 Tech Stack <a name = "tech-stack"></a>
+
+- **Frontend:** [React](https://reactjs.org/), [Tailwind CSS](https://tailwindcss.com/)
+- **Backend:** [Node.js](https://nodejs.org/), [Express](https://expressjs.com/)
+- **Database:** [MongoDB](https://www.mongodb.com/)
+- **DevOps:** [Docker](https://www.docker.com/), [AWS](https://aws.amazon.com/)
+
+---
+
+## 🏁 Getting Started <a name = "getting-started"></a>
+
+Follow these instructions to set up the project locally.
+
+### Prerequisites
+
+List the software needed to run this project (e.g., Node version).
+
+* npm
+  ```sh
+  npm install npm@latest -g
+
+```
+
+### Installation
+
+1. Clone the repo
+```sh
+git clone [https://github.com/your_username/repo_name.git](https://github.com/your_username/repo_name.git)
+
+```
+
+
+2. Install NPM packages
+```sh
+npm install
+
+```
+
+
+3. Configure your environment variables in `.env`
+```js
+API_KEY = 'ENTER YOUR API';
+DB_URL = 'ENTER YOUR DB URL';
+
+```
+
+
+
+---
+
+## 🎈 Usage <a name = "usage"></a>
+
+Provide instructions and examples for use.
+
+```javascript
+import { myFunction } from 'my-lib';
+
+myFunction();
+
+```
+
+## 🗺️ Roadmap <a name = "roadmap"></a>
+
+* [x] Initial Setup
+* [ ] Add Authentication
+* [ ] Multi-language Support
+
+---
+
+## 🤝 Contributing <a name = "contributing"></a>
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📝 License <a name = "license"></a>
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 👤 Contact <a name = "contact"></a>
+
+Your Name - [@your_twitter](https://www.google.com/search?q=https://twitter.com/your_username) - email@example.com
+
+Project Link: [https://github.com/your_username/repo_name](https://www.google.com/search?q=https://github.com/your_username/repo_name)
+
+```
+
+**Would you like me to fill in the "Project Name" or "Description" sections for you now?**
+
+```
