@@ -13,6 +13,9 @@ private:
     std::list<Block> blocks;
     int next_id;
     Allocator* allocator;
+    size_t alloc_success;
+    size_t alloc_failure;
+
 
 public:
     Memory();
@@ -24,6 +27,12 @@ public:
     bool deallocate(int id);
 
     void dump() const;
+    size_t get_total_memory() const;
+    size_t get_used_memory() const;
+    size_t get_free_memory() const;
+    double get_external_fragmentation() const;
+    double get_utilization() const;
+
 };
 
 #endif

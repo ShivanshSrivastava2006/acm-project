@@ -1,17 +1,7 @@
-#include "core/memory.h"
-#include "allocator/worst_fit.h"
+#include "cli/repl.h"
 
 int main() {
-    Memory mem;
-    WorstFitAllocator alloc;
-
-    mem.init(1024);
-    mem.set_allocator(&alloc);
-
-    int a = mem.allocate(100);
-    int b = mem.allocate(200);
-
-    mem.dump();
-    mem.deallocate(a);
-    mem.dump();
+    REPL repl;
+    repl.run();
+    return 0;
 }
