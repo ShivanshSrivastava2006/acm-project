@@ -1,141 +1,29 @@
-Memory Management Simulator
-Overview
+Memory Management SimulatorRepository: github.com/shivanshsrivastava2006/acm-projectOverviewThe Memory Management Simulator is a user-space C++ application designed to model the behavior of contiguous physical memory allocation. It provides an abstract simulation of a linear memory space, utilizing metadata blocks to track allocation states without managing actual application data.This tool serves as a testbed for comparing fundamental memory allocation algorithms—First Fit, Best Fit, and Worst Fit—and analyzing their impact on memory utilization and fragmentation. It features a modular architecture where allocation policies are decoupled from the underlying memory management mechanisms (splitting and coalescing).FeaturesContiguous Memory Simulation: Models a flat address space initialized to a user-defined size.Dynamic Allocation Policies: Runtime switching between distinct allocation strategies:First FitBest FitWorst FitBlock Management:Splitting: Automatically splits free blocks when an allocation request is smaller than the available block, preserving the remainder.Coalescing: Automatically merges adjacent free blocks upon deallocation to reduce external fragmentation.Interactive REPL: A Command-Line Interface for real-time interaction with the memory manager.Statistical Analysis: Real-time reporting of memory metrics and fragmentation calculations.Memory ModelThe simulator treats memory as a linked list of metadata blocks. It does not store actual user payloads; rather, it manipulates logical blocks representing the state of the memory.Each block contains the following metadata:Block ID: Unique identifier for tracking allocations.Start Address / Offset: Logical position within the memory pool.Size: The capacity of the block.Status: An enumeration indicating whether the block is FREE or ALLOCATED.When the memory is initialized, it exists as a single large FREE block. As malloc requests are processed, this block is split. When free is called, the system checks immediate neighbors (previous and next) and merges them if they are also FREE.Allocation StrategiesThe simulator implements the Allocator interface through three distinct concrete strategies.First FitThe allocator scans the list of free blocks from the beginning and selects the first block that is large enough to satisfy the request.Performance: Generally faster allocation time ($O(n)$ in worst case, but often constant in practice).Impact: Tends to cluster allocations at the beginning of the memory space.Best FitThe allocator scans the entire list of free blocks and selects the block that is closest in size to the request (smallest sufficient block).Performance: Requires a full scan ($O(n)$) unless the list is ordered by size.Impact: Minimizes the size of the leftover fragment (internal fragmentation equivalent) but may create many tiny, unusable gaps (external fragmentation).Worst FitThe allocator scans the entire list and selects the largest available free block.Performance: Requires a full scan ($O(n)$).Impact: Ensures the leftover fragment is as large as possible, potentially making it more useful for future allocations.Statistics & MetricsThe system calculates metrics dynamically after every operation.General MetricsTotal Memory: The fixed size of the memory pool defined at initialization.Used Memory: Sum of sizes of all ALLOCATED blocks.Free Memory: Sum of sizes of all FREE blocks.Utilization: $\frac{\text{Used Memory}}{\text{Total Memory}} \times 100\%$Fragmentation AnalysisThe simulator calculates External Fragmentation to measure the extent to which free memory is broken into small, non-contiguous blocks.The formula used is:$$\text{External Fragmentation} = 1 - \left( \frac{\text{Largest Free Block}}{\text{Total Free Memory}} \right)$$0.0 (0%): No fragmentation (all free memory is contiguous).Approaching 1.0 (100%): Severe fragmentation (free memory exists but is scattered in tiny blocks).Command-Line InterfaceThe application runs an interactive Read-Eval-Print Loop (REPL).CommandsCommandArgumentsDescriptioninit memory<size>Initializes the memory pool with a specific total size.set allocator<policy>Sets the strategy. Options: first_fit, best_fit, worst_fit.malloc<size>Allocates a block of the specified size. Returns a Block ID.free<block_id>Deallocates the block with the given ID. Triggers coalescing.dumpNonePrints the current state of all memory blocks (Address, Size, Status).statsNoneDisplays utilization and fragmentation metrics.exitNoneTerminates the simulation.Example SessionPlaintext> init memory 1024
+Memory initialized with 1024 bytes.
 
-This project is a C++-based Memory Management Simulator that models how an operating system manages physical memory. It simulates dynamic memory allocation and deallocation, supports multiple allocation strategies, and reports fragmentation and utilization metrics through an interactive command-line interface.
+> set allocator best_fit
+Allocator set to Best Fit.
 
-The simulator is a user-space model, not an OS kernel. Its goal is to accurately represent OS-level memory management behavior using well-defined data structures and algorithms.
-
-Features
-
-Simulation of contiguous physical memory
-
-Dynamic memory allocation and deallocation
-
-Allocation strategies:
-
-First Fit
-
-Best Fit
-
-Worst Fit
-
-Block splitting and coalescing to reduce fragmentation
-
-Interactive CLI (REPL-based)
-
-Memory layout visualization
-
-Memory utilization and fragmentation statistics
-
-Memory Model
-
-Physical memory is simulated as a contiguous, byte-addressable region
-
-Memory is represented using metadata blocks rather than actual data storage
-
-Each block stores:
-
-Start address
-
-Size
-
-Allocation status (free/used)
-
-Allocation ID
-
-Adjacent free blocks are merged automatically during deallocation
-
-Allocation Strategies
-
-First Fit: Selects the first free block large enough for the request
-
-Best Fit: Selects the smallest free block that satisfies the request
-
-Worst Fit: Selects the largest available free block
-
-Allocation policies are separated from memory management logic using an allocator abstraction, enabling clean extensibility.
-
-Statistics
-
-The simulator computes and reports:
-
-Total memory
-
-Used memory
-
-Free memory
-
-Memory utilization (%)
-
-External fragmentation (%)
-
-External fragmentation is calculated as:
-
-1 − (largest_free_block / total_free_memory)
-
-Command-Line Interface
-
-Supported commands:
-
-init memory <size>
-set allocator <first_fit | best_fit | worst_fit>
-malloc <size>
-free <block_id>
-dump
-stats
-exit
-
-
-Example session:
-
-> init memory 1024
-> set allocator first_fit
 > malloc 100
+Allocated Block ID 1 (Size: 100)
+
 > malloc 200
+Allocated Block ID 2 (Size: 200)
+
+> free 1
+Block ID 1 freed. Coalescing performed.
+
 > dump
+[0] ID: 0 | Size: 100 | FREE
+[100] ID: 2 | Size: 200 | ALLOCATED
+[300] ID: 0 | Size: 724 | FREE
+
 > stats
-
-Project Structure
-src/
-├── core/           # Memory model and block management
-├── allocator/      # Allocation strategies
-├── cli/            # Interactive REPL
-├── main.cpp
-include/
-tests/
-docs/
-
-Build Instructions
-
-Compile using g++:
-
-g++ -std=c++17 src/main.cpp src/cli/repl.cpp src/core/memory.cpp \
-src/allocator/first_fit.cpp src/allocator/best_fit.cpp src/allocator/worst_fit.cpp \
--o memsim
-
-
-Run:
-
-./memsim
-
-Limitations
-
-Does not simulate actual data storage
-
-Virtual memory, paging, and cache simulation are not implemented
-
-Designed for educational simulation, not production use
-
-Purpose
-
-This project aims to provide hands-on understanding of:
-
-OS memory allocation strategies
-
-Fragmentation behavior
-
-Systems-level design and abstraction
-
-✅ Status
-
-Core functionality complete and fully tested.
+Total Memory: 1024
+Used Memory:  200
+Free Memory:  824
+Utilization:  19.53%
+Ext. Frag:    12.14%
+Project StructureThe codebase adheres to object-oriented principles, separating the interface from the implementation.main.cpp: Entry point handling the REPL and command parsing.MemoryManager: Core class managing the linked list of blocks, splitting, and coalescing logic.Allocator: Abstract base class defining the allocate() interface.FirstFitAllocator: Implementation of the First Fit logic.BestFitAllocator: Implementation of the Best Fit logic.WorstFitAllocator: Implementation of the Worst Fit logic.Block: Struct definition for memory metadata (ID, size, state).Build InstructionsPrerequisitesA C++ compiler supporting C++17 or later (GCC, Clang, or MSVC).Make (optional, if Makefile is provided).CompilingTo compile the project using g++:Bashg++ -std=c++17 -o memsim main.cpp src/*.cpp
+RunningBash./memsim
+LimitationsSimulation Only: This is a logical model. It does not interface with the OS kernel or manage actual hardware RAM.No Payload Storage: The simulator tracks allocation size and status but does not allow writing data into the allocated blocks.Single-Threaded: The implementation is not thread-safe and is designed for single-user experimentation.Linear Search: The block list is implemented as a linear linked list, resulting in $O(n)$ time complexity for search operations.Purpose / Learning OutcomesThis project is intended for academic and educational purposes, specifically to:Visualize how different allocation strategies affect heap geometry.Understand the mechanics of block splitting and coalescing.Quantify the trade-offs between allocation speed and memory fragmentation.StatusCurrent Version: 1.0.0Status: Maintenance Mode
