@@ -1,8 +1,10 @@
 #include "memory.h"
+#include "../allocator/allocator.h"
 #include <iostream>
 #include <iomanip>
 
-Memory::Memory() : total_size(0), next_id(1) {}
+
+Memory::Memory() : total_size(0), next_id(1), allocator(nullptr) {}
 
 void Memory::init(size_t size) {
     total_size = size;
@@ -12,27 +14,27 @@ void Memory::init(size_t size) {
 }
 
 int Memory::allocate(size_t size) {
-    for (auto it = blocks.begin(); it != blocks.end(); ++it) {
-        if (it->free && it->size >= size) {
-            int id = next_id++;
+    if (!allocator) return -1;
 
-            if (it->size > size) {
-                Block remaining = {
-                    it->start + size,
-                    it->size - size,
-                    true,
-                    -1
-                };
-                it->size = size;
-                blocks.insert(std::next(it), remaining);
-            }
+    auto it = allocator->select_block(blocks, size);
+    if (it == blocks.end()) return -1;
 
-            it->free = false;
-            it->id = id;
-            return id;
-        }
+    int id = next_id++;
+
+    if (it->size > size) {
+        Block remaining = {
+            it->start + size,
+            it->size - size,
+            true,
+            -1
+        };
+        it->size = size;
+        blocks.insert(std::next(it), remaining);
     }
-    return -1;
+
+    it->free = false;
+    it->id = id;
+    return id;
 }
 
 bool Memory::deallocate(int id) {
@@ -77,4 +79,8 @@ void Memory::dump() const {
             std::cout << "USED (id=" << block.id << ")\n";
         }
     }
+}
+
+void Memory::set_allocator(Allocator* alloc) {
+    allocator = alloc;
 }
