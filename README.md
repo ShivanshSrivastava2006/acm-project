@@ -9,7 +9,8 @@ A command-line memory management simulator that models a contiguous physical mem
 - CLI commands and usage
 - Allocation strategies
 - Memory visualization and statistics
-- Buddy allocator (planned)
+- Buddy allocator
+- Multilevel cache simulation
 - Architecture and design goals
 - Typical use cases
 - Contributing
@@ -83,18 +84,36 @@ Core features that are already implemented
    - Designed for easy extension without breaking existing code.
    - No circular dependencies across modules.
 
-Optional / advanced feature in progress
+Optional / advanced feature in implemented
 
-9. Buddy allocation system (planned)
-   - A separate memory management subsystem that does not modify the existing contiguous allocators.
-   - Characteristics and requirements:
-     - Total memory size must be a power of two.
-     - Allocation sizes are rounded up to the nearest power of two.
-     - Maintains free lists per block order.
-     - Allocations use recursive splitting of blocks.
-     - Deallocation performs buddy merging using XOR logic.
-     - Provides very low external fragmentation and demonstrates a different performance and fragmentation profile.
-   - Buddy allocator will be pluggable from the CLI to allow comparisons between internal and external fragmentation behavior.
+9. Buddy allocator
+
+The Buddy allocator is implemented as a separate memory management subsystem that does not modify the existing contiguous allocation strategies.
+
+Key characteristics:
+- Requires the initial memory size to be a power of two.
+- Allocation requests are rounded up to the nearest power of two.
+- Maintains free lists indexed by block order.
+- Allocation is performed by recursively splitting larger blocks.
+- Deallocation merges free buddy blocks using XOR-based address computation.
+- Fully integrated into the CLI and selectable at runtime.
+
+The Buddy allocator demonstrates a contrasting fragmentation profile compared to contiguous allocation strategies, trading external fragmentation for internal fragmentation.
+
+10. Multilevel cache simulation
+
+The simulator includes a minimal multilevel CPU cache simulation layered above memory allocation.
+
+Features:
+- Two-level cache hierarchy (L1 and L2).
+- Configurable cache size, block size, and associativity.
+- FIFO (First-In, First-Out) replacement policy.
+- Tracks cache hits and misses per cache level.
+- Implements miss propagation from L1 to L2 to memory.
+
+The cache simulation operates on memory addresses only and is independent of the underlying allocation strategy, allowing cache behavior to be observed alongside different memory allocators.
+
+
 
 ## CLI commands and usage
 
@@ -155,6 +174,23 @@ Start the simulator to enter an interactive REPL. Once in the REPL, use the foll
   exit
   ```
 
+- Cache access
+  ```
+  access <address>
+  ```
+  Simulates a memory access through the cache hierarchy.
+
+- Cache statistics
+  ```
+  cache stats
+  ```
+  Displays hit and miss statistics for each cache level.
+
+- Reset cache statistics
+  ```
+  cache reset
+  ```
+  
 The CLI parser is defensive. Invalid commands or parameters produce helpful error messages and keep the REPL running.
 
 ## Allocation strategies - behavior details
@@ -235,10 +271,8 @@ Contributions are welcome. Typical contributions include:
 
 Please open issues and pull requests in the repository. Provide reproducible steps for bugs and a description of proposed changes for PRs.
 
-## License
-
-Add your preferred license information here or include a LICENSE file in the repository.
 
 ## One-line summary
 
-A memory management simulator with multiple allocation strategies, fragmentation analysis, interactive control, and a pluggable Buddy allocator extension, built with clean systems-level abstractions.
+A memory management simulator featuring multiple allocation strategies, a fully implemented Buddy allocator, multilevel FIFO cache simulation, fragmentation analysis, and an interactive CLI, built with clean systems-level abstractions.
+
