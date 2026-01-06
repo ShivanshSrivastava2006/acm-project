@@ -1,129 +1,244 @@
-# Design and Implementation of a Memory Management Simulator
+# Memory Management Simulator
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+A command-line memory management simulator that models a contiguous physical memory region and multiple allocation strategies. The simulator focuses on metadata-only simulation, allocation policies, fragmentation analysis, and interactive control to help demonstrate operating system memory management concepts and compare allocator behavior.
 
-> A brief description of what this project does and who it's for.
+## Table of contents
 
-## 📋 Table of Contents
+- Overview
+- Key features
+- CLI commands and usage
+- Allocation strategies
+- Memory visualization and statistics
+- Buddy allocator (planned)
+- Architecture and design goals
+- Typical use cases
+- Contributing
+- License
+- One-line summary
 
-- [About](#about)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+## Overview
 
----
+This project simulates physical memory and multiple allocation policies. It does not store application data inside simulated memory. Instead, it maintains metadata that represents blocks, addresses, allocation IDs, and free lists. The simulator is focused on teaching and demonstrating allocation mechanisms, fragmentation, and allocator performance.
 
-## 🧐 About <a name = "about"></a>
+## Key features
 
-Write a detailed description of the project here. Explain the problem statement, why you built this, and what the solution achieves.
+Core features that are already implemented
 
-## ✨ Features <a name = "features"></a>
+1. Physical memory simulation
+   - Simulates a contiguous block of physical memory.
+   - Memory is byte-addressable.
+   - No real payload is stored. The system manages simulation metadata only.
 
-- **Feature 1:** Description of the first key feature.
-- **Feature 2:** Description of the second key feature.
-- **Feature 3:** Description of the third key feature.
+2. Dynamic memory allocation
+   - Supports runtime allocation and deallocation of variable-sized blocks.
+   - Allocation requests are validated and handled via metadata-only operations.
+   - Memory is divided into variable-sized blocks tracked by metadata.
 
-## 🚀 Tech Stack <a name = "tech-stack"></a>
+3. Allocation strategies (contiguous allocation)
+   - Clean allocator abstraction supports multiple strategies:
+     - First fit
+     - Best fit
+     - Worst fit
+   - Each strategy searches free blocks according to its policy.
+   - Blocks can be split on allocation to satisfy requests.
+   - Allocation strategies plug into the core memory model without modifying it.
 
-- **Frontend:** [React](https://reactjs.org/), [Tailwind CSS](https://tailwindcss.com/)
-- **Backend:** [Node.js](https://nodejs.org/), [Express](https://expressjs.com/)
-- **Database:** [MongoDB](https://www.mongodb.com/)
-- **DevOps:** [Docker](https://www.docker.com/), [AWS](https://aws.amazon.com/)
+4. Deallocation and coalescing
+   - Frees memory by block ID assigned at allocation time.
+   - Automatically merges adjacent free blocks to reduce fragmentation.
+   - Prevents uncontrolled external fragmentation by coalescing.
 
----
+5. Interactive command-line interface (CLI / REPL)
+   - Commands are parsed robustly and invalid input does not crash the program.
+   - The allocator policy can be switched at runtime.
+   - Supported commands:
+     - `init memory <size>`
+     - `set allocator <first_fit | best_fit | worst_fit>`
+     - `malloc <size>`
+     - `free <block_id>`
+     - `dump`
+     - `stats`
+     - `exit`
 
-## 🏁 Getting Started <a name = "getting-started"></a>
+6. Memory visualization
+   - Displays memory layout with address ranges, block status (FREE or USED), and allocation IDs.
+   - Visualization helps to make fragmentation and block placement visible.
 
-Follow these instructions to set up the project locally.
+7. Memory statistics and metrics
+   - `stats` command computes and displays:
+     - Total memory
+     - Used memory
+     - Free memory
+     - Memory utilization (percentage)
+     - External fragmentation (percentage)
+   - External fragmentation formula used:
+     - 1 - (largest_free_block / total_free_memory)
 
-### Prerequisites
+8. Clean modular architecture
+   - Clear separation of concerns:
+     - Core memory model
+     - Allocation policies
+     - CLI logic
+     - Statistics and metrics
+   - Designed for easy extension without breaking existing code.
+   - No circular dependencies across modules.
 
-List the software needed to run this project (e.g., Node version).
+Optional / advanced feature in progress
 
-* npm
-  ```sh
-  npm install npm@latest -g
+9. Buddy allocation system (planned)
+   - A separate memory management subsystem that does not modify the existing contiguous allocators.
+   - Characteristics and requirements:
+     - Total memory size must be a power of two.
+     - Allocation sizes are rounded up to the nearest power of two.
+     - Maintains free lists per block order.
+     - Allocations use recursive splitting of blocks.
+     - Deallocation performs buddy merging using XOR logic.
+     - Provides very low external fragmentation and demonstrates a different performance and fragmentation profile.
+   - Buddy allocator will be pluggable from the CLI to allow comparisons between internal and external fragmentation behavior.
 
-```
+## CLI commands and usage
 
-### Installation
+Start the simulator to enter an interactive REPL. Once in the REPL, use the following commands:
 
-1. Clone the repo
-```sh
-git clone [https://github.com/your_username/repo_name.git](https://github.com/your_username/repo_name.git)
+- Initialize memory
+  ```
+  init memory <size>
+  ```
+  Example:
+  ```
+  init memory 65536
+  ```
+  Initializes the simulated physical memory to 65,536 bytes.
 
-```
+- Set allocator policy
+  ```
+  set allocator <first_fit | best_fit | worst_fit>
+  ```
+  Example:
+  ```
+  set allocator first_fit
+  ```
 
+- Allocate memory
+  ```
+  malloc <size>
+  ```
+  Example:
+  ```
+  malloc 1024
+  ```
+  Returns an allocation ID that can be used for freeing.
 
-2. Install NPM packages
-```sh
-npm install
+- Free memory
+  ```
+  free <block_id>
+  ```
+  Example:
+  ```
+  free 3
+  ```
 
-```
+- Inspect memory layout
+  ```
+  dump
+  ```
+  Shows address ranges, block size, status, and allocation IDs.
 
+- Show statistics
+  ```
+  stats
+  ```
+  Shows totals, utilization percent, and external fragmentation percent.
 
-3. Configure your environment variables in `.env`
-```js
-API_KEY = 'ENTER YOUR API';
-DB_URL = 'ENTER YOUR DB URL';
+- Exit REPL
+  ```
+  exit
+  ```
 
-```
+The CLI parser is defensive. Invalid commands or parameters produce helpful error messages and keep the REPL running.
 
+## Allocation strategies - behavior details
 
+- First fit
+  - Scans free blocks from the beginning and selects the first block large enough to satisfy the request.
+  - Splits a larger block into an allocated block and a smaller free block when needed.
 
----
+- Best fit
+  - Searches all free blocks and selects the smallest free block that is large enough for the request.
+  - May reduce wasted space in the chosen block, but can produce smaller leftover fragments.
 
-## 🎈 Usage <a name = "usage"></a>
+- Worst fit
+  - Chooses the largest available free block for the allocation.
+  - Intends to leave reasonably sized free blocks behind, but behavior depends on workload.
 
-Provide instructions and examples for use.
+All strategies operate via the same allocator interface so they are interchangeable at runtime and do not modify the core memory model.
 
-```javascript
-import { myFunction } from 'my-lib';
+## Memory visualization and statistics
 
-myFunction();
+The `dump` command prints a succinct representation for each block such as:
 
-```
+- Address range (start - end)
+- Block size in bytes
+- Status: FREE or USED
+- Allocation ID for used blocks
 
-## 🗺️ Roadmap <a name = "roadmap"></a>
+The `stats` command prints:
+- Total memory (bytes)
+- Used memory (bytes)
+- Free memory (bytes)
+- Memory utilization: used / total expressed as a percentage
+- External fragmentation: computed as 1 - (largest_free_block / total_free_memory)
 
-* [x] Initial Setup
-* [ ] Add Authentication
-* [ ] Multi-language Support
+These outputs are intended to help compare allocator behavior and observe fragmentation dynamics as allocations and frees proceed.
 
----
+## Buddy allocator (planned)
 
-## 🤝 Contributing <a name = "contributing"></a>
+The Buddy allocator will be implemented as a separate allocator module with the following properties:
+- Requires that the initial memory size is a power of two.
+- Rounds allocation requests up to the nearest power of two.
+- Maintains a set of free lists keyed by block order.
+- Allocates by recursively splitting larger blocks when needed.
+- Deallocates by merging free buddies using XOR logic.
+- Will be selectable from the CLI like other allocators.
+- Will provide contrast between internal fragmentation and external fragmentation compared to the existing allocators.
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+## Architecture and design goals
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- Policy versus mechanism separation
+  - The project separates the memory mechanism from allocator policies. Allocators implement a defined interface and can be swapped without touching core memory logic.
 
----
+- Modularity
+  - Core modules include:
+    - Memory model and block metadata
+    - Allocator interface and implementations
+    - CLI and command parsing
+    - Statistics and reporting
+  - Modules should be easy to extend or replace.
 
-## 📝 License <a name = "license"></a>
+- Educational clarity
+  - Code and output emphasize clarity, observability, and repeatability for use in coursework and demonstrations.
 
-Distributed under the MIT License. See `LICENSE` for more information.
+## Typical use cases
 
-## 👤 Contact <a name = "contact"></a>
+- Operating systems coursework and labs
+- Systems programming portfolio and demos
+- Algorithmic studies and comparison of allocation strategies
+- Demonstrations of fragmentation and allocator tradeoffs
 
-Your Name - [@your_twitter](https://www.google.com/search?q=https://twitter.com/your_username) - email@example.com
+## Contributing
 
-Project Link: [https://github.com/your_username/repo_name](https://www.google.com/search?q=https://github.com/your_username/repo_name)
+Contributions are welcome. Typical contributions include:
+- Bug reports and test cases
+- Improvements to the CLI and visualization
+- New allocator implementations such as the Buddy allocator or slab allocator
+- Documentation and examples
 
-```
+Please open issues and pull requests in the repository. Provide reproducible steps for bugs and a description of proposed changes for PRs.
 
-**Would you like me to fill in the "Project Name" or "Description" sections for you now?**
+## License
 
-```
+Add your preferred license information here or include a LICENSE file in the repository.
+
+## One-line summary
+
+A memory management simulator with multiple allocation strategies, fragmentation analysis, interactive control, and a pluggable Buddy allocator extension, built with clean systems-level abstractions.
