@@ -1,0 +1,15 @@
+init memory 1024
+set allocator buddy
+
+malloc 100
+malloc 120
+malloc 60
+dump
+
+free 2
+dump
+
+free 1
+free 3
+dump
+stats
