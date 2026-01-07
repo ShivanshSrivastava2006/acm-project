@@ -1,0 +1,21 @@
+init memory 1024
+
+set allocator first_fit
+malloc 200
+malloc 200
+malloc 200
+malloc 200
+free 2
+free 4
+stats
+dump
+
+set allocator best_fit
+malloc 180
+stats
+dump
+
+set allocator worst_fit
+malloc 180
+stats
+dump
