@@ -1,0 +1,75 @@
+PS C:\Users\shiva\acm-project> ./memsim
+Memory Management Simulator
+Type 'exit' to quit
+> init memory 1024
+Memory initialized with size 1024
+> set allocator first_fit
+Allocator set to First Fit
+> malloc 128
+Allocated block id=1
+> malloc 256
+Allocated block id=2
+> malloc 64 
+Allocated block id=3
+> dump
+[0x0000 - 0x007f] USED (id=1)
+[0x0080 - 0x017f] USED (id=2)
+[0x0180 - 0x01bf] USED (id=3)
+[0x01c0 - 0x03ff] FREE
+> stats
+Total memory: 400
+Used memory: 1c0
+Free memory: 240
+Memory utilization: 43.75%
+External fragmentation: 0%
+> free 2
+Block 2 freed
+> dump
+[0x0000 - 0x007f] USED (id=1)
+[0x0080 - 0x017f] FREE
+[0x0180 - 0x01bf] USED (id=3)
+[0x01c0 - 0x03ff] FREE
+> stats
+Total memory: 400
+Used memory: c0
+Free memory: 340
+Memory utilization: 18.75%
+External fragmentation: 30.7692%
+> set allocator buddy
+Allocator set to Buddy
+> malloc 100
+Allocated block id=1 at address 0
+> malloc 200
+Allocated block id=2 at address 100
+> dump stats
+Buddy Free Lists:
+Order 0 (size 1): empty
+Order 1 (size 2): empty
+Order 2 (size 4): empty
+Order 3 (size 8): empty
+Order 4 (size 10): empty
+Order 5 (size 20): empty
+Order 6 (size 40): empty
+Order 7 (size 80): [80]
+Order 8 (size 100): empty
+Order 9 (size 200): [200]
+Order a (size 400): empty
+> access 64
+Accessed address 40
+> access 128
+Accessed address 80
+> access 64
+Accessed address 40
+> cache stats
+L1 Cache Stats:
+Hits: 0
+Misses: 3
+Hit ratio: 0%
+L2 Cache Stats:
+Hits: 1
+Misses: 2
+Hit ratio: 33.3333%
+Memory accesses: 2
+> exit
+Exiting simulator
+PS C:\Users\shiva\acm-project>
