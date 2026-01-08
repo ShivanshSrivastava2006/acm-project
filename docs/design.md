@@ -277,7 +277,7 @@ Testing:
 - Buddy allocator requires total memory to be a power of two; this is an enforced precondition.
 - Cache simulation omits write-policy details (no write-back/write-through distinction), dirty bits, or coherence protocols.
 - Timing and latency modeling is out of scope: the system reports counts and ratios, not time-based performance metrics.
-- No simulation of allocator fragmentation due to allocator-internal metadata overheads—metadata has no in-band size overhead on simulated blocks.
+- No simulation of allocator fragmentation due to allocator-internal metadata overheads metadata has no in-band size overhead on simulated blocks.
 
 ## Possible Extensions (Optional)
 
