@@ -1,4 +1,4 @@
-# Memory Management Simulator — Design Document
+# Memory Management Simulator -- Design Document
 
 Date: 2026-01-07  
 Author: ShivanshSrivastava2006 (project repository)
