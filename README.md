@@ -1,5 +1,5 @@
 # Memory Management Simulator
-
+- Find the demo video here:  [click here](https://www.youtube.com/watch?v=Z9demVwPOFI)
 A command-line memory management simulator that models a contiguous physical memory region and multiple allocation strategies. The simulator focuses on metadata-only simulation, allocation policies, fragmentation analysis, and interactive control to help demonstrate operating system memory management concepts and compare allocator behavior.
 
 ## Table of contents
